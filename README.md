@@ -10,7 +10,7 @@ Guess the word in 6 tries! ✍️
 - 📝 Guess a 5-letter word in 6 attempts  
 - 🎯 Letters are marked as **correct**, **present**, or **absent**  
 - 💻 Built entirely with React  
-- 📱 Responsive design for mobile and desktop  
+- 📱 Only avaliable for desktop  
 
 ---
 
@@ -42,7 +42,6 @@ git clone https://github.com/Dev-Matheus-Felipe/Termo_Game.git
 ```
 
 2. Navigate to the project folder:
-3. 
 ```bash
 cd Termo_Game
 ```
