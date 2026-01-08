@@ -10,7 +10,7 @@ Guess the word in 6 tries! ✍️
 - 📝 Guess a 5-letter word in 6 attempts  
 - 🎯 Letters are marked as **correct**, **present**, or **absent**  
 - 💻 Built entirely with React  
-- 📱 Only avaliable for desktop  
+- 📱 Avaliable for desktop and mobile
 
 ---
 
