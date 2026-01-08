@@ -1,142 +1,112 @@
-import { useEffect, useState, type Dispatch } from "react";
+import { useEffect, useState } from "react";
 
-type State = {
+type Board = {
     board: string[],
     index: number
 }
 
-const LINE_LENGTH = 5;
-const WORD_TARGET = "MIOJO"
+const WORD_TARGET = "FARDO";
 
+const BOARD_LENGTH = 6;
+const WORD_LENGTH = 5;
 
 export default function App(){
-    const [state ,setState] = useState<State>({
-        board: Array(6).fill(""),
+    const [board, setBoard] = useState<Board>({
+        board: Array(BOARD_LENGTH).fill(""),
         index: 0
     })
 
     const [gameOver, setGameOver] = useState<boolean>(false);
+    const [guess, setGuess] = useState("");
+
+    const handlerClick = (event: React.FormEvent<HTMLDivElement>) => {
+        event.preventDefault();
+
+        const validation = /^[a-zA-Z]{5}$/;
+        if(!validation.test(guess) || gameOver) return;
+
+        const newBoard = [...board.board];
+        newBoard[board.index] = guess.toUpperCase();
+
+        setBoard(prev => ({
+            board: newBoard,
+            index: prev.index + 1
+        }))
+
+        setGuess("");
+    }
 
     useEffect(() => {
-        
-        const TypeHandler = (event: KeyboardEvent) => {
-            const keyTest = /^[a-zA-Z]$/;
-            const key = event.key;
+        if(board.index > 5 || board.board[board.index - 1] === WORD_TARGET){
+            setGameOver(true);
 
-            if(state.index >= 6 || gameOver){
-                window.removeEventListener("keydown", TypeHandler);
-                return;
-            }
-
-            setState( (prev) => {
-                const newBoard = [...prev.board];
-                const currentIndex = prev.index;
-
-
-                switch(key){
-                    case "Enter":
-                        if(newBoard[currentIndex].length === LINE_LENGTH)
-                            return {...prev, index: currentIndex + 1};
-                        
-                        return prev;
-
-                    case "Backspace":
-                        if(newBoard[currentIndex].length > 0){
-                            newBoard[currentIndex] = newBoard[currentIndex].slice(0,-1);
-                            return {...prev, board: newBoard};
-                        }
-
-                        return prev;
-
-                    default:
-                        if(keyTest.test(key) && newBoard[currentIndex].length < LINE_LENGTH){
-                            newBoard[currentIndex] = newBoard[currentIndex] + key.toLocaleUpperCase();
-                            return {...prev, board: newBoard};
-                        }
-
-                        return prev;
-                }
-            })
+            alert((board.index > 5) ? `VOCE PERDEU, PALAVRA DESEJADA: ${WORD_TARGET}!` : `VOCE GANHOU!`);
         }
-
-        window.addEventListener("keydown",TypeHandler);
-        return () => window.removeEventListener("keydown", TypeHandler);
-    },[state.index, gameOver])
-
+    },[board])
 
     return (
-        <div className="container">
+       <div className="container" onSubmit={handlerClick}>
+            <form className="form">
+                <input 
+                    type="text" 
+                    value={guess} 
+                    onChange={(e) => (!gameOver) && setGuess(e.target.value)} 
+                    maxLength={5} 
+                    minLength={5} />
+
+                <button type="submit">Enviar</button>
+            </form>
+
             {
-                state.board.map((word: string, index: number ) => (
-                    <Line key={index} word={word} setGameOver={setGameOver} index={state.index > index}  />
+                board.board.map((word, index) => (
+                    <Line word={word} key={index} />
                 ))
             }
-        </div>
+       </div>
     )
 }
 
 
-const SetColors = (word: string, index: boolean) => {
-    if(!index || word.length !== LINE_LENGTH){
-        return Array(LINE_LENGTH).fill("white");
-    }
+const setColor = ({word} : {word: string}) => {
+    const colors = Array(WORD_LENGTH).fill("white");
+    if(word.length !== WORD_LENGTH) return colors;
 
-    const result = Array(LINE_LENGTH).fill("gray");
-    const targetLetters = WORD_TARGET.split("");
+    const newWord= WORD_TARGET.split("");
 
-    for (let i = 0; i < LINE_LENGTH; i++) {
-        if (word[i] === WORD_TARGET[i]) {
-        result[i] = "green";
-        targetLetters[i] = "";
+    for(let i = 0; i < WORD_LENGTH; i++){
+        if(word[i] === newWord[i]){
+            colors[i] = "green";
+            newWord[i] = "";
         }
     }
 
-    for (let i = 0; i < LINE_LENGTH; i++) {
-        if (result[i] === "green") continue;
-
-        const idx = targetLetters.indexOf(word[i]);
-        if (idx !== -1) {
-        result[i] = "yellow";
-        }
+    for(let i = 0; i < WORD_LENGTH; i++){
+        if(newWord[i] && newWord.includes(word[i]))
+            colors[i] = "orange"
     }
 
-    return result;
+    return colors;
 }
 
-function Line({
-    word,
-    setGameOver,
-    index
-} : {
-    word: string,
-    setGameOver: Dispatch<React.SetStateAction<boolean>>,
-    index: boolean
-}){
+function Line({word} : {word: string}){
+    const line =  [];   
+    const colors: string[] = setColor({word});
 
-    const line:string[]  = [];
+    for(let i = 0; i < WORD_LENGTH; i++){
+        line.push(
+            <div 
+                className="letter" 
+                key={i}
+                style={{backgroundColor: colors[i]}}>
 
-    for(let i = 0; i < LINE_LENGTH; i++)
-        line.push(word[i] ?? "");
-
-    const colors = SetColors(word, index);
-
-    useEffect(() => {
-        if(colors.every(e => e === "green"))
-            setGameOver(true);
-    },[index])
-
+                {word[i] ?? ""}
+            </div>
+        );
+    }
+    
     return (
-        <div className="line_container">
-            {
-                line.map((l: string, index: number) => (
-                    <div 
-                        key={index} 
-                        style={{backgroundColor:colors[index]}}
-                        className="line">
-                        {l}
-                    </div>
-                ))
-            }
+        <div className="line">
+            {line}
         </div>
     )
 }
